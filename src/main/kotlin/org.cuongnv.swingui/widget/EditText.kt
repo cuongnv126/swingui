@@ -9,64 +9,64 @@ import javax.swing.border.EmptyBorder
 import org.cuongnv.swingui.anim.SinInterpolator
 import org.cuongnv.swingui.anim.ValueAnimator
 import org.cuongnv.swingui.res.Colors
-import org.cuongnv.swingui.utils.TextUtils
 
 class EditText : JTextField(), FocusListener {
-    private var mHint: String? = null
-    private var mIsHint = false
+    companion object {
+        private val COLOR_LINE_UN_FOCUS = Color.decode("#eeeeee")
+        private val COLOR_LINE_FOCUS = Colors.colorPrimary
+        private val COLOR_HINT_TEXT = Colors.hintColor
+    }
+
+    private var hint: String? = null
     private var animator: ValueAnimator<Float>? = null
-    private var mCurrentLineWidth: Float
+    private var focusLineWidth: Float = 0f
+
+    init {
+        addFocusListener(this)
+        border = EmptyBorder(5, 5, 5, 5)
+    }
 
     fun setHint(hint: String?) {
-        mHint = hint
+        if (this.hint != hint) {
+            this.hint = hint
+            repaint()
+        }
         focusLost(null)
     }
 
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
-        g.color = Color.decode("#eeeeee")
+        g.color = COLOR_LINE_UN_FOCUS
         g.drawRect(0, height - 1, width, 1)
-        if (mCurrentLineWidth > 0) {
-            g.color = Colors.colorPrimary
-            g.drawRect(((width - mCurrentLineWidth) / 2).toInt(), height - 1, mCurrentLineWidth.toInt(), 1)
+        if (focusLineWidth > 0) {
+            g.color = COLOR_LINE_FOCUS
+            g.drawRect(((width - focusLineWidth) / 2).toInt(), height - 1, focusLineWidth.toInt(), 1)
+        }
+
+        if (text.isEmpty() && !hint.isNullOrEmpty()) {
+            g.font = font
+            g.color = COLOR_HINT_TEXT
+            g.drawString(hint!!, 5, getFontMetrics(font).height)
         }
     }
 
     override fun focusGained(e: FocusEvent) {
         showAnim()
-        if (mIsHint) {
-            text = ""
-            foreground = Color.decode("#333333")
-        }
     }
 
     override fun focusLost(e: FocusEvent?) {
         hideAnim()
-        if (TextUtils.isEmpty(content)) {
-            setText(mHint)
-            foreground = Color.decode("#999999")
-            mIsHint = true
-        } else {
-            mIsHint = false
-        }
-    }
-
-    private val content: String
-        get() = super.getText()
-
-    override fun getText(): String {
-        return if (mIsHint) "" else content
     }
 
     private fun showAnim() {
         if (animator != null && animator!!.isRunning) {
             animator!!.cancel()
         }
-        animator = ValueAnimator.ofFloat(mCurrentLineWidth, width.toFloat())
-        animator!!.setDuration(300)
+        animator = ValueAnimator.ofFloat(focusLineWidth, width.toFloat())
+        animator!!.setDuration(250)
             .setInterpolator(SinInterpolator())
             .setUpdateListener { value: Float ->
-                mCurrentLineWidth = value
+                focusLineWidth = value
                 revalidate()
                 repaint()
             }
@@ -77,20 +77,14 @@ class EditText : JTextField(), FocusListener {
         if (animator != null && animator!!.isRunning) {
             animator!!.cancel()
         }
-        animator = ValueAnimator.ofFloat(mCurrentLineWidth, 0f)
-        animator!!.setDuration(300)
+        animator = ValueAnimator.ofFloat(focusLineWidth, 0f)
+        animator!!.setDuration(250)
             .setInterpolator(SinInterpolator())
             .setUpdateListener { value: Float ->
-                mCurrentLineWidth = value
+                focusLineWidth = value
                 revalidate()
                 repaint()
             }
             .start()
-    }
-
-    init {
-        addFocusListener(this)
-        mCurrentLineWidth = 0f
-        border = EmptyBorder(5, 5, 5, 5)
     }
 }

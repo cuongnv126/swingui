@@ -25,6 +25,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JLabel
 import javax.swing.WindowConstants
+import kotlin.system.exitProcess
 import org.cuongnv.swingui.material.FlatButtonUI
 import org.cuongnv.swingui.res.Values
 import org.cuongnv.swingui.utils.ViewUtils
@@ -44,7 +45,7 @@ abstract class Screen @JvmOverloads constructor(initWidth: Int = DEFAULT_WIDTH, 
     }
 
     private val screenSize = Toolkit.getDefaultToolkit().screenSize
-    private val window: JFrame = JFrame()
+    val window: JFrame = JFrame()
     private lateinit var titlePanel: JPanel
     private lateinit var _contentPanel: JPanel
 
@@ -101,15 +102,13 @@ abstract class Screen @JvmOverloads constructor(initWidth: Int = DEFAULT_WIDTH, 
         this.onViewCreated()
     }
 
-    open fun onViewCreated() {}
-
     private fun setupFrame() {
         val buttonClose = createTitleAction(ViewUtils.getImageIcon("icons8-multiply-24.png"))
         buttonClose.addActionListener(object : AbstractAction() {
             override fun actionPerformed(actionEvent: ActionEvent) {
                 onClose()
                 window.dispose()
-                System.exit(0)
+                exitProcess(0)
             }
         })
 
@@ -173,4 +172,5 @@ abstract class Screen @JvmOverloads constructor(initWidth: Int = DEFAULT_WIDTH, 
     open fun onStart() {}
     open fun onClose() {}
     abstract fun onCreateView()
+    open fun onViewCreated() {}
 }
